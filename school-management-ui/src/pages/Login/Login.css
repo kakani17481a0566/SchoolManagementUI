@@ -1,0 +1,139 @@
+/* Main login card container */
+.login-card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  max-width: 900px; /* Ideal width for the card */
+  height: 500px; /* Adjusted for a balanced size */
+  margin: 60px auto;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.9); /* Transparent white background */
+  backdrop-filter: blur(8px); /* Light blur effect */
+  transition: box-shadow 0.3s ease; /* Smooth transition for shadow */
+}
+
+/* Left section of the card (image container) */
+.grid-left {
+  background-color: #f7f7f7; /* Soft background color */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px; /* Added padding to give the image space */
+  overflow: hidden; /* Prevents overflow for large images */
+}
+
+/* Scaling the logo image for better visibility */
+.logo-img {
+  max-width: 100%; /* Ensure the image doesn't exceed the container width */
+  max-height: 100%; /* Ensure the image is contained inside the grid-left section */
+  height: auto;
+  object-fit: contain;
+}
+
+/* Right section of the card (form container) */
+.grid-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+/* Form styles */
+.login-form {
+  width: 100%;
+  max-width: 350px; /* Increased max-width for readability */
+}
+
+.login-form h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 24px; /* Larger font size for better visibility */
+}
+
+/* Form group for inputs */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+/* Input field styling */
+.form-group input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px; /* Ensures input text is easy to read */
+}
+
+/* Button styling */
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #007bff;
+  border: none;
+  color: white;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+button:disabled {
+  background-color: #c6c6c6; /* Disabled button styling */
+  cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .login-card-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    height: auto;
+    max-width: 100%;
+  }
+
+  .grid-left,
+  .grid-right {
+    padding: 20px;
+  }
+
+  .logo-img {
+    max-width: 100%; /* Ensure image fits on small screens */
+    max-height: 250px; /* Limit image height on mobile for better fit */
+  }
+}
+
+/* Background Page Styling */
+.login-page {
+  min-height: 100vh;
+  background-image: url('https://res.cloudinary.com/kakani7/image/upload/v1746165081/MSI/n0virwrf54za0cynyy3w.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.login-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4); /* Slight dark overlay for better contrast */
+  z-index: 0;
+}
+
+.login-card-grid {
+  position: relative;
+  z-index: 1; /* Keep the card above the blur effect */
+}
