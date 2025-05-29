@@ -5,6 +5,7 @@ import HomePage from "./pages/HomePage/HomePage";
 import Login from "./pages/Login/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
+import Department from "./pages/Department/Department";
 
 const App = () => {
   return (
@@ -14,6 +15,8 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/home" element={<ProtectedRoute element={<HomePage />} />} />
         <Route path="*" element={<Navigate to="/login" />} />
+        <Route path="/department" element={<Department/>} />
+              <Route path="/department" element={<Department/>} />
       </Routes>
     </Router>
   );

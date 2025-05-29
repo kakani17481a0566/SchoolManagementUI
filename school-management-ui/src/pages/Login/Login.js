@@ -1,4 +1,3 @@
-// src/pages/Login/Login.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
@@ -28,7 +27,14 @@ const Login = () => {
       setLoading(false);
 
       if (result.statusCode === 200) {
-        localStorage.setItem("token", result.data.token);
+        const { userName, userId, tenantId, token } = result.data;
+
+        // Store values in localStorage
+        localStorage.setItem("token", token);
+        localStorage.setItem("userName", userName);
+        localStorage.setItem("userId", userId);
+        localStorage.setItem("tenantId", tenantId);
+
         navigate("/home");
       } else {
         alert(result.message || "Login failed.");

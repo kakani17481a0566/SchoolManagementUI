@@ -1,0 +1,65 @@
+/* Reset and base */
+.department-page {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.department-header {
+  padding: 2rem;
+  background: linear-gradient(90deg, #004080 0%, #0059b3 100%);
+  color: white;
+  text-align: center;
+}
+
+.department-header h1 {
+  margin: 0 0 0.5rem 0;
+  font-weight: 700;
+}
+
+.department-header p {
+  margin: 0;
+  font-size: 1.2rem;
+  opacity: 0.85;
+}
+
+/* Main Content */
+.department-main {
+  flex: 1;
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+
+.department-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.department-list li {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #ddd;
+  font-size: 1.1rem;
+  color: #004080;
+}
+
+.department-list li:last-child {
+  border-bottom: none;
+}
+
+/* Footer */
+.department-footer {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  background-color: #f0f0f0;
+  color: #666;
+  font-size: 0.9rem;
+  border-top: 1px solid #ddd;
+}
