@@ -35,12 +35,14 @@ const HomePage = () => {
         <h1>Welcome to Your Dashboard</h1>
         <p>Your personalized home page after login</p>
       </header>
+
       <main className="home-main">
         <div className="welcome-message">
           <h2>Welcome, {userData?.userName || "User"}</h2>
           <p>You're logged in! Here you can see your profile and settings.</p>
         </div>
-        <div className="user-info">
+
+        <div className="user-card">
           <h3>User Information</h3>
           <ul>
             <li><strong>Name:</strong> {userData?.userName || "-"}</li>
@@ -48,8 +50,12 @@ const HomePage = () => {
             <li><strong>Token Expires:</strong> {userData?.joined || "-"}</li>
           </ul>
         </div>
-        <button className="logout-btn" onClick={handleLogout}>Log Out</button>
+
+        <button className="logout-btn" onClick={handleLogout}>
+          Log Out
+        </button>
       </main>
+
       <footer className="home-footer">
         <p>&copy; 2025 MyWebsite. All rights reserved.</p>
       </footer>
