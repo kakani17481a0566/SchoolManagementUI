@@ -1,126 +1,189 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import Navbar from "../../components/Navbar";
+import { FaEdit } from "react-icons/fa";
+import { MdDeleteForever } from "react-icons/md";
+import Toast from "../../components/Toast";
+import useToast from "../../hooks/useToast";
+
 import "./Organization.css";
 
-const Organization = () => {
+const API_BASE_URL = "https://localhost:7171/api/Organization";
+
+const useOrganizations = (tenantId, userId, showToast) => {
   const [organizationList, setOrganizationList] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [editingOrg, setEditingOrg] = useState(null);
-  const [editForm, setEditForm] = useState({ name: "", parentId: "" });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const tenantId = localStorage.getItem("tenantId");
-  const updatedBy = localStorage.getItem("userId");
-
-  // Fetch organization data
-  useEffect(() => {
-    if (!tenantId) {
-      alert("No tenantId found in localStorage");
-      setLoading(false);
-      return;
+  const fetchOrganizations = async () => {
+    setIsLoading(true);
+    try {
+      const res = await axios.get(`${API_BASE_URL}/tenant/${tenantId}`);
+      const sorted = res.data.data.sort((a, b) => a.organizationId - b.organizationId);
+      setOrganizationList(sorted);
+    } catch (error) {
+      console.error("Failed to fetch organizations", error);
+      showToast("Failed to load organizations.", "error");
+    } finally {
+      setIsLoading(false);
     }
-
-    fetch(`https://localhost:7171/api/Organization/tenant/${tenantId}`, {
-      headers: { Accept: "*/*" },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch data");
-        return res.json();
-      })
-      .then((data) => {
-        const sorted = (data.data || []).sort((a, b) => a.organizationId - b.organizationId);
-        setOrganizationList(sorted);
-      })
-      .catch((err) => {
-        console.error(err);
-        alert("Error loading organization data");
-      })
-      .finally(() => setLoading(false));
-  }, [tenantId]);
-
-  // Open edit modal
-  const handleEdit = (org) => {
-    setEditingOrg(org);
-    setEditForm({ name: org.name, parentId: org.parentId || "" });
   };
 
-  // Track input changes
-  const handleEditChange = (e) => {
-    const { name, value } = e.target;
-    setEditForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // Submit updated data
-  const handleEditSubmit = (e) => {
-    e.preventDefault();
-    if (!editingOrg) return;
-
-    fetch(`https://localhost:7171/api/Organization/${editingOrg.organizationId}/${tenantId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "*/*",
-      },
-      body: JSON.stringify({
-        name: editForm.name,
-        parentId: editForm.parentId || null,
-        updatedBy: Number(updatedBy),
-      }),
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Update failed");
-        return res.json();
+  // Return a promise so caller can react after deletion
+  const deleteOrganization = (id) => {
+    return axios
+      .delete(`${API_BASE_URL}/${id}/${tenantId}`)
+      .then(() => {
+        setOrganizationList((prev) => prev.filter((org) => org.organizationId !== id));
       })
-      .then((updated) => {
-        // Update the list without reload
-        setOrganizationList((prevList) =>
-          prevList.map((org) =>
-            org.organizationId === editingOrg.organizationId
-              ? { ...org, ...editForm }
-              : org
-          )
-        );
-        setEditingOrg(null);
-        alert("Organization updated successfully");
-      })
-      .catch((err) => {
-        console.error(err);
-        alert("Error updating organization");
+      .catch((error) => {
+        throw error;
       });
   };
 
-  // Delete an organization
-  const handleDelete = (id) => {
-    if (!window.confirm("Are you sure you want to delete this organization?")) return;
+  return {
+    organizationList,
+    setOrganizationList,
+    isLoading,
+    fetchOrganizations,
+    deleteOrganization,
+  };
+};
 
-    fetch(`https://localhost:7171/api/Organization/${id}/${tenantId}`, {
-      method: "DELETE",
-      headers: { Accept: "*/*" },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Delete failed");
-        setOrganizationList((prev) => prev.filter((org) => org.organizationId !== id));
+const Organization = () => {
+  const tenantId = parseInt(localStorage.getItem("tenantId"));
+  const userId = parseInt(localStorage.getItem("userId"));
+  const { toast, showToast, hideToast } = useToast();
+
+  const {
+    organizationList,
+    isLoading,
+    fetchOrganizations,
+    deleteOrganization,
+  } = useOrganizations(tenantId, userId, showToast);
+
+  const [editingOrg, setEditingOrg] = useState(null);
+  const [editForm, setEditForm] = useState({ name: "", parentId: "" });
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [validationError, setValidationError] = useState("");
+
+  useEffect(() => {
+    if (!tenantId) {
+      showToast("Tenant ID is missing.", "error");
+      return;
+    }
+    fetchOrganizations();
+  }, [tenantId]);
+
+  const openEditPopup = (org = null) => {
+    setValidationError("");
+    if (org) {
+      setEditingOrg(org);
+      setEditForm({
+        name: org.name,
+        parentId: org.parentId !== null ? org.parentId.toString() : "",
+      });
+    } else {
+      setEditingOrg(null);
+      setEditForm({ name: "", parentId: "" });
+    }
+    setIsPopupOpen(true);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm((prev) => ({ ...prev, [name]: value }));
+    if (validationError) setValidationError("");
+  };
+
+  const validateForm = () => {
+    if (!editForm.name.trim()) {
+      setValidationError("Organization name is required.");
+      return false;
+    }
+    if (
+      editingOrg &&
+      editForm.parentId &&
+      editForm.parentId === editingOrg.organizationId.toString()
+    ) {
+      setValidationError("Parent ID cannot be the organization itself.");
+      return false;
+    }
+    return true;
+  };
+
+  const handleSave = async () => {
+    if (!validateForm()) return;
+
+    setIsSaving(true);
+    const payload = {
+      name: editForm.name.trim(),
+      parentId: editForm.parentId ? parseInt(editForm.parentId) : null,
+      tenantId,
+      ...(editingOrg ? { updatedBy: userId } : { createdBy: userId }),
+    };
+
+    try {
+      if (editingOrg) {
+        await axios.put(
+          `${API_BASE_URL}/${editingOrg.organizationId}/${tenantId}`,
+          payload
+        );
+        showToast(
+          `Organization '${editingOrg.name}' updated to '${payload.name}'!`,
+          "success"
+        );
+      } else {
+        await axios.post(API_BASE_URL, payload);
+        showToast(`Organization '${payload.name}' created successfully!`, "success");
+      }
+      await fetchOrganizations();
+      setIsPopupOpen(false);
+    } catch (error) {
+      console.error("Error saving organization", error);
+      showToast("Failed to save organization.", "error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = (id) => {
+    const orgToDelete = organizationList.find((org) => org.organizationId === id);
+    if (!orgToDelete) {
+      showToast("Organization not found.", "error");
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to delete organization '${orgToDelete.name}'?`)) return;
+
+    setIsSaving(true);
+    deleteOrganization(id)
+      .then(() => {
+        showToast(`Organization '${orgToDelete.name}' deleted successfully!`, "success");
       })
-      .catch((err) => {
-        console.error(err);
-        alert("Error deleting organization");
+      .catch(() => {
+        showToast("Failed to delete organization.", "error");
+      })
+      .finally(() => {
+        setIsSaving(false);
       });
   };
 
   return (
-    <div className="page-wrapper">
+    <div>
       <Navbar />
-      <header className="page-header">
-        <h1>Organization Profile</h1>
-        <p>Details about your registered organization</p>
-      </header>
+      <div className="department-container">
+        <div className="department-header">
+          <h2>Organizations</h2>
+          <button className="add-button" onClick={() => openEditPopup(null)} disabled={isSaving}>
+            <span style={{ marginRight: 6, fontWeight: "bold" }}>Add Organization</span>
+          </button>
+        </div>
 
-      <main>
-        {loading ? (
-          <p>Loading organization data...</p>
-        ) : organizationList.length === 0 ? (
-          <p>No organization data found.</p>
+        {isLoading ? (
+          <p>Loading organizations...</p>
         ) : (
-          <table className="org-table">
+          <table className="department-table">
             <thead>
               <tr>
                 <th>ID</th>
@@ -129,58 +192,112 @@ const Organization = () => {
               </tr>
             </thead>
             <tbody>
-              {organizationList.map((org) => (
-                <tr key={org.organizationId}>
-                  <td>{org.organizationId}</td>
-                  <td>{org.name}</td>
-                  <td>
-                    <button className="edit-btn" onClick={() => handleEdit(org)}>Edit</button>
-                    <button className="delete-btn" onClick={() => handleDelete(org.organizationId)}>Delete</button>
+              {organizationList.length ? (
+                organizationList.map((org) => (
+                  <tr key={org.organizationId}>
+                    <td>{org.organizationId}</td>
+                    <td>{org.name}</td>
+                    <td>
+                      <div className="action-buttons">
+                        <button
+                          className="action-btn edit-btn"
+                          onClick={() => openEditPopup(org)}
+                          disabled={isSaving}
+                        >
+                          <FaEdit className="icon" />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          className="action-btn delete-btn"
+                          onClick={() => handleDelete(org.organizationId)}
+                          disabled={isSaving}
+                        >
+                          <MdDeleteForever className="icon" />
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="3" style={{ textAlign: "center" }}>
+                    No organizations found.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         )}
 
-        {/* Modal for editing */}
-        {editingOrg && (
-          <div className="modal-overlay">
-            <div className="modal">
-              <h3>Edit Organization (ID: {editingOrg.organizationId})</h3>
-              <form onSubmit={handleEditSubmit}>
-                <label>
-                  Organization Name:
-                  <input
-                    type="text"
-                    name="name"
-                    value={editForm.name}
-                    onChange={handleEditChange}
-                    required
-                  />
-                </label>
-                <label>
-                  Parent ID (optional):
-                  <input
-                    type="number"
-                    name="parentId"
-                    value={editForm.parentId}
-                    onChange={handleEditChange}
-                  />
-                </label>
-                <div className="modal-actions">
-                  <button type="submit" className="edit-btn">Save</button>
-                  <button type="button" className="delete-btn" onClick={() => setEditingOrg(null)}>Cancel</button>
+        {isPopupOpen && (
+          <div className="popup-overlay">
+            <div
+              className="popup-content"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="popup-title"
+            >
+              <h3 id="popup-title">{editingOrg ? "Edit Organization" : "Add Organization"}</h3>
+
+              <div className="form-group">
+                <label htmlFor="org-name">Organization Name</label>
+                <input
+                  id="org-name"
+                  name="name"
+                  type="text"
+                  value={editForm.name}
+                  onChange={handleInputChange}
+                  placeholder="Enter organization name"
+                  required
+                  autoFocus
+                  disabled={isSaving}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="parentId">Parent ID (optional)</label>
+                <input
+                  id="parentId"
+                  name="parentId"
+                  type="number"
+                  min="1"
+                  value={editForm.parentId}
+                  onChange={handleInputChange}
+                  placeholder="Enter parent organization ID"
+                  disabled={isSaving}
+                />
+              </div>
+
+              {validationError && (
+                <div className="validation-error" style={{ color: "red", marginBottom: 8 }}>
+                  {validationError}
                 </div>
-              </form>
+              )}
+
+              <div className="popup-buttons">
+                <button className="save-btn" onClick={handleSave} disabled={isSaving}>
+                  {isSaving ? "Saving..." : "Save"}
+                </button>
+                <button
+                  className="cancel-btn"
+                  onClick={() => setIsPopupOpen(false)}
+                  disabled={isSaving}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         )}
-      </main>
 
-      <footer className="page-footer">
-        <p>&copy; 2025 MyWebsite. All rights reserved.</p>
-      </footer>
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+          visible={toast.visible}
+        />
+      </div>
     </div>
   );
 };
