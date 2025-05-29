@@ -1,0 +1,176 @@
+.page-header {
+  padding: 2rem 2rem 1rem;
+  background: linear-gradient(90deg, #004080 0%, #0059b3 100%);
+  color: white;
+  text-align: center;
+  border-bottom: 4px solid #003366;
+}
+
+.page-header h1 {
+  margin: 0 0 0.5rem 0;
+  font-weight: 700;
+  font-size: 2rem;
+}
+
+.page-header p {
+  margin: 0;
+  font-weight: 400;
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.org-card {
+  background-color: white;
+  border-radius: 10px;
+  padding: 2rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto 2rem auto;
+}
+
+.org-card:hover {
+  transform: translateY(-3px);
+}
+
+.org-card h2 {
+  color: #004080;
+  margin-bottom: 1rem;
+}
+
+.org-card p {
+  margin: 0.75rem 0;
+  font-size: 1rem;
+  color: #555;
+}
+
+.org-card p strong {
+  color: #004080;
+}
+
+.page-footer {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  background-color: #e6ecf2;
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: auto;
+  border-top: 1px solid #ccc;
+}
+
+.org-table {
+  width: 100%;
+  max-width: 800px;
+  margin: 2rem auto;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.org-table th,
+.org-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.org-table th {
+  background: #004080;
+  color: white;
+  font-weight: 600;
+}
+
+.org-table tbody tr:hover {
+  background-color: #f1f7ff;
+}
+
+.edit-btn,
+.delete-btn {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  margin-right: 0.4rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  font-family: 'Georgia', serif;
+  font-size: 0.85rem;
+  box-shadow: 1.5px 1.5px 4px rgba(0, 51, 102, 0.3);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+  white-space: nowrap;
+  color: white;
+  border: 2px solid;
+}
+
+.edit-btn {
+  background: linear-gradient(145deg, #336699, #004080);
+  border-color: #003366;
+}
+
+.edit-btn:hover {
+  background: linear-gradient(145deg, #004080, #00264d);
+  box-shadow: 2px 2px 6px rgba(0, 38, 77, 0.5);
+}
+
+.delete-btn {
+  background: linear-gradient(145deg, #cc6666, #a94442);
+  border-color: #8b2e2e;
+}
+
+.delete-btn:hover {
+  background: linear-gradient(145deg, #a94442, #7a2525);
+  box-shadow: 2px 2px 6px rgba(122, 37, 37, 0.5);
+}
+
+.edit-form {
+  max-width: 500px;
+  margin: 2rem auto;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.edit-form h3 {
+  margin-bottom: 1rem;
+  color: #004080;
+}
+
+.edit-form input {
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  font-size: 1rem;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  max-width: 400px;
+  width: 90%;
+  z-index: 1001;
+  position: relative;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}

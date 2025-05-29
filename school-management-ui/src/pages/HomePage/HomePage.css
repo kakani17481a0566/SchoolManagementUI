@@ -1,4 +1,4 @@
-/* Reset some default browser styles */
+/* Reset and Base */
 * {
   box-sizing: border-box;
 }
@@ -18,18 +18,20 @@ body, html, #root, .home-page {
   background: linear-gradient(90deg, #004080 0%, #0059b3 100%);
   color: white;
   text-align: center;
+  border-bottom: 4px solid #003366;
 }
 
 .home-header h1 {
   margin: 0 0 0.5rem 0;
   font-weight: 700;
+  font-size: 2rem;
 }
 
 .home-header p {
   margin: 0;
   font-weight: 400;
-  font-size: 1.2rem;
-  opacity: 0.85;
+  font-size: 1.1rem;
+  opacity: 0.9;
 }
 
 /* Main Content */
@@ -46,6 +48,11 @@ body, html, #root, .home-page {
   box-shadow: 0 4px 16px rgba(0,0,0,0.1);
   text-align: center;
   margin-bottom: 2rem;
+  transition: transform 0.3s ease;
+}
+
+.welcome-message:hover {
+  transform: translateY(-3px);
 }
 
 .welcome-message h2 {
@@ -62,9 +69,9 @@ body, html, #root, .home-page {
 .home-footer {
   text-align: center;
   padding: 1.5rem 1rem;
-  background-color: #f0f0f0;
+  background-color: #e6ecf2;
   color: #666;
   font-size: 0.9rem;
   margin-top: auto;
-  border-top: 1px solid #ddd;
+  border-top: 1px solid #ccc;
 }

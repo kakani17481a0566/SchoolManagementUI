@@ -65,6 +65,10 @@ const Navbar = () => {
         <li>
           <Link to="/Home">Home</Link>
         </li>
+
+         <li>
+          <Link to="/Organization">Organization</Link>
+        </li>
         <li>
           <Link to="/dashboard">Dashboard</Link>
         </li>
@@ -93,7 +97,7 @@ const Navbar = () => {
                     />
                     <h5>{userData.userName}</h5>
                     <p className="role">Member</p>
-                    <button className="edit-btn">✎</button>
+                    <button className="edit-btn">Edit</button>
                   </div>
                   <div className="user-card-right">
                     <h6>Information</h6>
