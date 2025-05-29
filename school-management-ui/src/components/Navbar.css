@@ -180,3 +180,11 @@
 .logout-btn:hover {
   background-color: #c9302c;
 }
+
+
+.navbar-logo {
+  height: 40px;
+  width: auto;
+  vertical-align: middle;
+  cursor: pointer;
+}

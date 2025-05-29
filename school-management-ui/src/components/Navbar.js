@@ -51,12 +51,33 @@ const Navbar = () => {
 
   return (
     <nav className="navbar">
-      <div className="navbar-brand">MyWebsite</div>
+      <div className="navbar-brand">
+        <Link to="/Home">
+          <img
+            src="https://res.cloudinary.com/kakani7/image/upload/v1748503564/MSI/zloxia3rhvacysbmspd8.png"
+            alt="Logo"
+            className="navbar-logo"
+          />
+        </Link>
+      </div>
+
       <ul className="navbar-links">
-        <li><Link to="/Home">Home</Link></li> 
-        <li><Link to="/dashboard">Dashboard</Link></li>
-        <li><Link to="/settings">Settings</Link></li>
-        <li><Link to="/department">Department</Link></li>
+        <li>
+          <Link to="/Home">Home</Link>
+        </li>
+
+         <li>
+          <Link to="/Organization">Organization</Link>
+        </li>
+        <li>
+          <Link to="/dashboard">Dashboard</Link>
+        </li>
+        <li>
+          <Link to="/settings">Settings</Link>
+        </li>
+        <li>
+          <Link to="/department">Department</Link>
+        </li>
         {userData && (
           <li className="dropdown-container" ref={dropdownRef}>
             <button
@@ -76,18 +97,28 @@ const Navbar = () => {
                     />
                     <h5>{userData.userName}</h5>
                     <p className="role">Member</p>
-                    <button className="edit-btn">✎</button>
+                    <button className="edit-btn">Edit</button>
                   </div>
                   <div className="user-card-right">
                     <h6>Information</h6>
                     <hr />
                     <ul className="info-list">
-                      <li><strong>Email:</strong> {userData.email}</li>
-                      <li><strong>User ID:</strong> {userData.userId}</li>
-                      <li><strong>Tenant ID:</strong> {userData.tenantId}</li>
-                      <li><strong>Expires:</strong> {userData.joined}</li>
+                      <li>
+                        <strong>Email:</strong> {userData.email}
+                      </li>
+                      <li>
+                        <strong>User ID:</strong> {userData.userId}
+                      </li>
+                      <li>
+                        <strong>Tenant ID:</strong> {userData.tenantId}
+                      </li>
+                      <li>
+                        <strong>Expires:</strong> {userData.joined}
+                      </li>
                     </ul>
-                    <button className="logout-btn" onClick={handleLogout}>Log Out</button>
+                    <button className="logout-btn" onClick={handleLogout}>
+                      Log Out
+                    </button>
                   </div>
                 </div>
               </div>
