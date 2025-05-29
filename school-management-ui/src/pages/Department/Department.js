@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import "./Department.css";
 import Navbar from "../../components/Navbar";
-import Toast from "../../components/Toast";
-import useToast from "../../hooks/useToast";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Spinner from "react-bootstrap/Spinner";
+import "./Department.css";
 
 const Department = () => {
   const [departments, setDepartments] = useState([]);
@@ -17,8 +17,6 @@ const Department = () => {
   const token = localStorage.getItem("token");
   const tenantId = localStorage.getItem("tenantId");
   const userId = localStorage.getItem("userId");
-
-  const { toast, showToast, hideToast } = useToast();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,7 +40,7 @@ const Department = () => {
         }
       } catch (error) {
         console.error("Fetch error:", error);
-        showToast("Failed to load departments or organizations.", "error");
+        toast.error("Failed to load departments or organizations.");
       } finally {
         setLoading(false);
       }
@@ -74,7 +72,7 @@ const Department = () => {
 
   const handleSave = async () => {
     if (!selectedDept.name || !selectedDept.organizationId) {
-      showToast("Please enter all required fields.", "error");
+      toast.error("Please enter all required fields.");
       return;
     }
 
@@ -91,14 +89,15 @@ const Department = () => {
           { ...payload, updatedBy: userId },
           { headers: { Authorization: `${token}` } }
         );
-        showToast(`Department '${selectedDept.name}' updated successfully!`, "success");
+        toast.success(`Department '${selectedDept.name}' (ID: ${selectedDept.id}) updated successfully!`);
       } else {
-        await axios.post(
+        const response = await axios.post(
           `https://localhost:7171/api/Department`,
           { ...payload, tenantId, createdBy: userId },
           { headers: { Authorization: `${token}` } }
         );
-        showToast(`Department '${selectedDept.name}' created successfully!`, "success");
+        const createdId = response?.data?.data?.id;
+        toast.success(`Department '${selectedDept.name}' (ID: ${createdId}) created successfully!`);
       }
 
       const refreshed = await axios.get(
@@ -110,7 +109,7 @@ const Department = () => {
       setIsPopupOpen(false);
     } catch (error) {
       console.error("Save failed:", error);
-      showToast("Failed to save department.", "error");
+      toast.error("Failed to save department.");
     }
   };
 
@@ -127,10 +126,10 @@ const Department = () => {
       setDepartments((prev) =>
         prev.filter((d) => d.id !== deptToDelete.id).sort((a, b) => a.id - b.id)
       );
-      showToast(`Department '${deptToDelete.name}' deleted successfully!`, "success");
+      toast.success(`Department '${deptToDelete.name}' (ID: ${deptToDelete.id}) deleted successfully!`);
     } catch (error) {
       console.error("Delete failed:", error);
-      showToast("Delete operation failed.", "error");
+      toast.error("Delete operation failed.");
     } finally {
       setDeptToDelete(null);
     }
@@ -143,11 +142,13 @@ const Department = () => {
   return (
     <div>
       <Navbar />
+      <ToastContainer position="top-right" autoClose={5000} theme="colored" />
+
       <div className="department-container">
         <div className="department-header">
           <h2>Departments</h2>
           <button className="add-button" onClick={handleAdd}>
-            <span aria-hidden="true" style={{ marginRight: "6px", fontWeight: "bold" }}>
+            <span style={{ marginRight: "6px", fontWeight: "bold" }}>
               Add
             </span>
           </button>
@@ -258,7 +259,7 @@ const Department = () => {
             <div className="popup-content">
               <h3>Confirm Delete</h3>
               <p>
-                Are you sure you want to delete department "<strong>{deptToDelete.name}</strong>"?
+                Are you sure you want to delete department "<strong>{deptToDelete.name}</strong>" (ID: {deptToDelete.id})?
               </p>
               <div className="popup-buttons">
                 <button
@@ -280,9 +281,6 @@ const Department = () => {
           </div>
         )}
       </div>
-
-      {/* Toast Notification */}
-      <Toast message={toast.message} type={toast.type} onClose={hideToast} visible={toast.visible} />
     </div>
   );
 };

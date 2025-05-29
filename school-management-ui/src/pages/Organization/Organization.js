@@ -3,14 +3,14 @@ import axios from "axios";
 import Navbar from "../../components/Navbar";
 import { FaEdit } from "react-icons/fa";
 import { MdDeleteForever } from "react-icons/md";
-import Toast from "../../components/Toast";
-import useToast from "../../hooks/useToast";
-
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Spinner from "react-bootstrap/Spinner";
 import "./Organization.css";
 
 const API_BASE_URL = "https://localhost:7171/api/Organization";
 
-const useOrganizations = (tenantId, userId, showToast) => {
+const useOrganizations = (tenantId) => {
   const [organizationList, setOrganizationList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -22,27 +22,25 @@ const useOrganizations = (tenantId, userId, showToast) => {
       setOrganizationList(sorted);
     } catch (error) {
       console.error("Failed to fetch organizations", error);
-      showToast("Failed to load organizations.", "error");
+      toast.error(error.response?.data?.message || "Failed to load organizations");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Return a promise so caller can react after deletion
-  const deleteOrganization = (id) => {
-    return axios
-      .delete(`${API_BASE_URL}/${id}/${tenantId}`)
-      .then(() => {
-        setOrganizationList((prev) => prev.filter((org) => org.organizationId !== id));
-      })
-      .catch((error) => {
-        throw error;
-      });
+  const deleteOrganization = async (id) => {
+    try {
+      await axios.delete(`${API_BASE_URL}/${id}/${tenantId}`);
+      toast.success("Organization deleted successfully");
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete organization");
+      throw error;
+    }
   };
 
   return {
     organizationList,
-    setOrganizationList,
     isLoading,
     fetchOrganizations,
     deleteOrganization,
@@ -52,14 +50,13 @@ const useOrganizations = (tenantId, userId, showToast) => {
 const Organization = () => {
   const tenantId = parseInt(localStorage.getItem("tenantId"));
   const userId = parseInt(localStorage.getItem("userId"));
-  const { toast, showToast, hideToast } = useToast();
 
   const {
     organizationList,
     isLoading,
     fetchOrganizations,
     deleteOrganization,
-  } = useOrganizations(tenantId, userId, showToast);
+  } = useOrganizations(tenantId);
 
   const [editingOrg, setEditingOrg] = useState(null);
   const [editForm, setEditForm] = useState({ name: "", parentId: "" });
@@ -69,7 +66,7 @@ const Organization = () => {
 
   useEffect(() => {
     if (!tenantId) {
-      showToast("Tenant ID is missing.", "error");
+      toast.error("Tenant ID is missing. Please login again.");
       return;
     }
     fetchOrganizations();
@@ -98,7 +95,7 @@ const Organization = () => {
 
   const validateForm = () => {
     if (!editForm.name.trim()) {
-      setValidationError("Organization name is required.");
+      setValidationError("Organization name is required");
       return false;
     }
     if (
@@ -106,7 +103,7 @@ const Organization = () => {
       editForm.parentId &&
       editForm.parentId === editingOrg.organizationId.toString()
     ) {
-      setValidationError("Parent ID cannot be the organization itself.");
+      setValidationError("Organization cannot be its own parent");
       return false;
     }
     return true;
@@ -129,59 +126,76 @@ const Organization = () => {
           `${API_BASE_URL}/${editingOrg.organizationId}/${tenantId}`,
           payload
         );
-        showToast(
-          `Organization '${editingOrg.name}' updated to '${payload.name}'!`,
-          "success"
-        );
+        toast.success("Organization updated successfully");
       } else {
         await axios.post(API_BASE_URL, payload);
-        showToast(`Organization '${payload.name}' created successfully!`, "success");
+        toast.success("Organization created successfully");
       }
       await fetchOrganizations();
       setIsPopupOpen(false);
     } catch (error) {
-      console.error("Error saving organization", error);
-      showToast("Failed to save organization.", "error");
+      const errorMsg = error.response?.data?.message || 
+        (editingOrg ? "Failed to update organization" : "Failed to create organization");
+      toast.error(errorMsg);
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     const orgToDelete = organizationList.find((org) => org.organizationId === id);
     if (!orgToDelete) {
-      showToast("Organization not found.", "error");
+      toast.error("Organization not found");
       return;
     }
 
-    if (!window.confirm(`Are you sure you want to delete organization '${orgToDelete.name}'?`)) return;
+    if (!window.confirm(`Delete organization "${orgToDelete.name}"? This action cannot be undone.`)) {
+      return;
+    }
 
     setIsSaving(true);
-    deleteOrganization(id)
-      .then(() => {
-        showToast(`Organization '${orgToDelete.name}' deleted successfully!`, "success");
-      })
-      .catch(() => {
-        showToast("Failed to delete organization.", "error");
-      })
-      .finally(() => {
-        setIsSaving(false);
-      });
+    try {
+      const success = await deleteOrganization(id);
+      if (success) {
+        await fetchOrganizations();
+      }
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
     <div>
       <Navbar />
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <div className="department-container">
         <div className="department-header">
           <h2>Organizations</h2>
-          <button className="add-button" onClick={() => openEditPopup(null)} disabled={isSaving}>
+          <button 
+            className="add-button" 
+            onClick={() => openEditPopup(null)} 
+            disabled={isSaving}
+          >
             <span style={{ marginRight: 6, fontWeight: "bold" }}>Add Organization</span>
           </button>
         </div>
 
         {isLoading ? (
-          <p>Loading organizations...</p>
+          <div style={{ textAlign: "center", marginTop: "50px" }}>
+            <Spinner animation="border" role="status" variant="primary">
+              <span className="visually-hidden">Loading...</span>
+            </Spinner>
+          </div>
         ) : (
           <table className="department-table">
             <thead>
@@ -222,7 +236,7 @@ const Organization = () => {
               ) : (
                 <tr>
                   <td colSpan="3" style={{ textAlign: "center" }}>
-                    No organizations found.
+                    No organizations found
                   </td>
                 </tr>
               )}
@@ -241,7 +255,7 @@ const Organization = () => {
               <h3 id="popup-title">{editingOrg ? "Edit Organization" : "Add Organization"}</h3>
 
               <div className="form-group">
-                <label htmlFor="org-name">Organization Name</label>
+                <label htmlFor="org-name">Organization Name *</label>
                 <input
                   id="org-name"
                   name="name"
@@ -270,7 +284,7 @@ const Organization = () => {
               </div>
 
               {validationError && (
-                <div className="validation-error" style={{ color: "red", marginBottom: 8 }}>
+                <div className="validation-error">
                   {validationError}
                 </div>
               )}
@@ -290,13 +304,6 @@ const Organization = () => {
             </div>
           </div>
         )}
-
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={hideToast}
-          visible={toast.visible}
-        />
       </div>
     </div>
   );

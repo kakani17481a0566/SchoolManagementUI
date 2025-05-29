@@ -5,15 +5,13 @@ import Login from "./pages/Login/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Department from "./pages/Department/Department";
 import Organization from "./pages/Organization/Organization";
-import Toast from "./components/Toast";
-import useToast from "./hooks/useToast";  // <-- Correct import here
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import "bootstrap/dist/css/bootstrap.min.css";
 
 import "./App.css";
 
 const App = () => {
-  const { toast, hideToast } = useToast();
-
   return (
     <>
       <Router>
@@ -27,15 +25,8 @@ const App = () => {
         </Routes>
       </Router>
 
-      {/* Render Toast globally */}
-      {toast.message && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={hideToast}
-          visible={toast.visible}
-        />
-      )}
+      {/* ToastContainer should be placed once in your app */}
+      <ToastContainer position="top-right" autoClose={5000} />
     </>
   );
 };
