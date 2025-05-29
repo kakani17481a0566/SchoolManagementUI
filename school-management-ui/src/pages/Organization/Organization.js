@@ -11,6 +11,7 @@ const Organization = () => {
   const tenantId = localStorage.getItem("tenantId");
   const updatedBy = localStorage.getItem("userId");
 
+  // Fetch organization data
   useEffect(() => {
     if (!tenantId) {
       alert("No tenantId found in localStorage");
@@ -31,21 +32,24 @@ const Organization = () => {
       })
       .catch((err) => {
         console.error(err);
-        alert("Error loading data");
+        alert("Error loading organization data");
       })
       .finally(() => setLoading(false));
   }, [tenantId]);
 
+  // Open edit modal
   const handleEdit = (org) => {
     setEditingOrg(org);
     setEditForm({ name: org.name, parentId: org.parentId || "" });
   };
 
+  // Track input changes
   const handleEditChange = (e) => {
     const { name, value } = e.target;
     setEditForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Submit updated data
   const handleEditSubmit = (e) => {
     e.preventDefault();
     if (!editingOrg) return;
@@ -64,31 +68,42 @@ const Organization = () => {
     })
       .then((res) => {
         if (!res.ok) throw new Error("Update failed");
-        alert("Organization updated successfully");
         return res.json();
       })
-      .then(() => window.location.reload())
+      .then((updated) => {
+        // Update the list without reload
+        setOrganizationList((prevList) =>
+          prevList.map((org) =>
+            org.organizationId === editingOrg.organizationId
+              ? { ...org, ...editForm }
+              : org
+          )
+        );
+        setEditingOrg(null);
+        alert("Organization updated successfully");
+      })
       .catch((err) => {
         console.error(err);
         alert("Error updating organization");
       });
   };
 
+  // Delete an organization
   const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this organization?")) {
-      fetch(`https://localhost:7171/api/Organization/${id}/${tenantId}`, {
-        method: "DELETE",
-        headers: { Accept: "*/*" },
+    if (!window.confirm("Are you sure you want to delete this organization?")) return;
+
+    fetch(`https://localhost:7171/api/Organization/${id}/${tenantId}`, {
+      method: "DELETE",
+      headers: { Accept: "*/*" },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Delete failed");
+        setOrganizationList((prev) => prev.filter((org) => org.organizationId !== id));
       })
-        .then((res) => {
-          if (!res.ok) throw new Error("Delete failed");
-          setOrganizationList((prev) => prev.filter((org) => org.organizationId !== id));
-        })
-        .catch((err) => {
-          console.error(err);
-          alert("Error deleting organization");
-        });
-    }
+      .catch((err) => {
+        console.error(err);
+        alert("Error deleting organization");
+      });
   };
 
   return (
@@ -128,26 +143,31 @@ const Organization = () => {
           </table>
         )}
 
+        {/* Modal for editing */}
         {editingOrg && (
           <div className="modal-overlay">
             <div className="modal">
               <h3>Edit Organization (ID: {editingOrg.organizationId})</h3>
               <form onSubmit={handleEditSubmit}>
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Organization Name"
-                  value={editForm.name}
-                  onChange={handleEditChange}
-                  required
-                />
-                <input
-                  type="number"
-                  name="parentId"
-                  placeholder="Parent ID (optional)"
-                  value={editForm.parentId}
-                  onChange={handleEditChange}
-                />
+                <label>
+                  Organization Name:
+                  <input
+                    type="text"
+                    name="name"
+                    value={editForm.name}
+                    onChange={handleEditChange}
+                    required
+                  />
+                </label>
+                <label>
+                  Parent ID (optional):
+                  <input
+                    type="number"
+                    name="parentId"
+                    value={editForm.parentId}
+                    onChange={handleEditChange}
+                  />
+                </label>
                 <div className="modal-actions">
                   <button type="submit" className="edit-btn">Save</button>
                   <button type="button" className="delete-btn" onClick={() => setEditingOrg(null)}>Cancel</button>
