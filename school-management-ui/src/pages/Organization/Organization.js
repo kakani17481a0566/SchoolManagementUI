@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import Navbar from "../../components/Navbar";
 import { FaEdit } from "react-icons/fa";
@@ -14,7 +14,8 @@ const useOrganizations = (tenantId) => {
   const [organizationList, setOrganizationList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchOrganizations = async () => {
+  // Use useCallback to memoize fetchOrganizations so it won't recreate on every render
+  const fetchOrganizations = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/tenant/${tenantId}`);
@@ -26,7 +27,7 @@ const useOrganizations = (tenantId) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [tenantId]); // dependency on tenantId
 
   const deleteOrganization = async (id) => {
     try {
@@ -66,13 +67,16 @@ const Organization = () => {
   const [orgToDelete, setOrgToDelete] = useState(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
+  // Now include fetchOrganizations in the dependencies array
   useEffect(() => {
     if (!tenantId) {
       toast.error("Tenant ID is missing. Please login again.");
       return;
     }
     fetchOrganizations();
-  }, [tenantId]);
+  }, [tenantId, fetchOrganizations]);
+
+  // ...rest of your component code remains unchanged
 
   const openEditPopup = (org = null) => {
     setValidationError("");

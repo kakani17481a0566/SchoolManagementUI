@@ -69,9 +69,13 @@ const Navbar = () => {
   const navItems = [
     { path: "/home", label: "Home", icon: <FiHome /> },
     { path: "/organization", label: "Organization", icon: <FiLayers /> },
-    { path: "/dashboard", label: "Dashboard", icon: <FiPieChart /> },
+    // { path: "/dashboard", label: "Dashboard", icon: <FiPieChart /> },
+    { path: "/home", label: "Dashboard", icon: <FiPieChart /> },
+
     { path: "/department", label: "Department", icon: <FiLayers /> },
-    { path: "/settings", label: "Settings", icon: <FiSettings /> },
+    // { path: "/settings", label: "Settings", icon: <FiSettings /> },
+    { path: "/home", label: "Settings", icon: <FiSettings /> },
+
   ];
 
   return (
