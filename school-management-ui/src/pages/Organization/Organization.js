@@ -31,11 +31,10 @@ const useOrganizations = (tenantId) => {
   const deleteOrganization = async (id) => {
     try {
       await axios.delete(`${API_BASE_URL}/${id}/${tenantId}`);
-      toast.success("Organization deleted successfully");
       return true;
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to delete organization");
-      throw error;
+      return false;
     }
   };
 
@@ -63,6 +62,9 @@ const Organization = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [validationError, setValidationError] = useState("");
+
+  const [orgToDelete, setOrgToDelete] = useState(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   useEffect(() => {
     if (!tenantId) {
@@ -134,7 +136,8 @@ const Organization = () => {
       await fetchOrganizations();
       setIsPopupOpen(false);
     } catch (error) {
-      const errorMsg = error.response?.data?.message || 
+      const errorMsg =
+        error.response?.data?.message ||
         (editingOrg ? "Failed to update organization" : "Failed to create organization");
       toast.error(errorMsg);
     } finally {
@@ -142,50 +145,42 @@ const Organization = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    const orgToDelete = organizationList.find((org) => org.organizationId === id);
-    if (!orgToDelete) {
-      toast.error("Organization not found");
-      return;
-    }
+  const confirmDeletePopup = (org) => {
+    setOrgToDelete(org);
+    setIsConfirmOpen(true);
+  };
 
-    if (!window.confirm(`Delete organization "${orgToDelete.name}"? This action cannot be undone.`)) {
-      return;
-    }
+  const handleConfirmDelete = async () => {
+    if (!orgToDelete) return;
 
     setIsSaving(true);
     try {
-      const success = await deleteOrganization(id);
+      const success = await deleteOrganization(orgToDelete.organizationId);
       if (success) {
         await fetchOrganizations();
+        toast.success(`Organization "${orgToDelete.name}" deleted successfully`);
       }
     } finally {
       setIsSaving(false);
+      setOrgToDelete(null);
+      setIsConfirmOpen(false);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setOrgToDelete(null);
+    setIsConfirmOpen(false);
   };
 
   return (
     <div>
       <Navbar />
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
+      <ToastContainer position="top-right" autoClose={5000} />
+
       <div className="department-container">
         <div className="department-header">
           <h2>Organizations</h2>
-          <button 
-            className="add-button" 
-            onClick={() => openEditPopup(null)} 
-            disabled={isSaving}
-          >
+          <button className="add-button" onClick={() => openEditPopup(null)} disabled={isSaving}>
             <span style={{ marginRight: 6, fontWeight: "bold" }}>Add Organization</span>
           </button>
         </div>
@@ -223,7 +218,7 @@ const Organization = () => {
                         </button>
                         <button
                           className="action-btn delete-btn"
-                          onClick={() => handleDelete(org.organizationId)}
+                          onClick={() => confirmDeletePopup(org)}
                           disabled={isSaving}
                         >
                           <MdDeleteForever className="icon" />
@@ -246,13 +241,8 @@ const Organization = () => {
 
         {isPopupOpen && (
           <div className="popup-overlay">
-            <div
-              className="popup-content"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="popup-title"
-            >
-              <h3 id="popup-title">{editingOrg ? "Edit Organization" : "Add Organization"}</h3>
+            <div className="popup-content" role="dialog" aria-modal="true">
+              <h3>{editingOrg ? "Edit Organization" : "Add Organization"}</h3>
 
               <div className="form-group">
                 <label htmlFor="org-name">Organization Name *</label>
@@ -284,18 +274,41 @@ const Organization = () => {
               </div>
 
               {validationError && (
-                <div className="validation-error">
-                  {validationError}
-                </div>
+                <div className="validation-error">{validationError}</div>
               )}
 
               <div className="popup-buttons">
                 <button className="save-btn" onClick={handleSave} disabled={isSaving}>
                   {isSaving ? "Saving..." : "Save"}
                 </button>
+                <button className="cancel-btn" onClick={() => setIsPopupOpen(false)} disabled={isSaving}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isConfirmOpen && orgToDelete && (
+          <div className="popup-overlay">
+            <div className="popup-content">
+              <h3>Confirm Delete</h3>
+              <p>
+                Are you sure you want to delete organization "<strong>{orgToDelete.name}</strong>" (ID: {orgToDelete.organizationId})?
+              </p>
+              <div className="popup-buttons">
                 <button
-                  className="cancel-btn"
-                  onClick={() => setIsPopupOpen(false)}
+                  className="save-btn"
+                  style={{ backgroundColor: "#dc3545" }}
+                  onClick={handleConfirmDelete}
+                  disabled={isSaving}
+                >
+                  {isSaving ? "Deleting..." : "Yes, Delete"}
+                </button>
+                <button
+                  className="save-btn"
+                  style={{ backgroundColor: "#6c757d" }}
+                  onClick={handleCancelDelete}
                   disabled={isSaving}
                 >
                   Cancel
